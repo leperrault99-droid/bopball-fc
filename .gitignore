@@ -1,0 +1,11 @@
+node_modules/
+.vercel
+*.log
+.DS_Store
+Thumbs.db
+
+.vercel
+
+# stray headless-browser profiles / screenshots from local testing
+tag*/
+tags_live.png

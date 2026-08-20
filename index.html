@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BOPBALL FC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --ink:#3a3153; --paper:#fff7ee; --candy1:#ff7eb0; --candy2:#6ec6ff; --candy3:#ffd93b;
+    --candy4:#9b8cff; --mint:#7be3a8; --coral:#ff8a70;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; user-select:none; -webkit-user-select:none;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#bfe7ff;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--ink);}
+  #c{position:fixed;inset:0;display:block;}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#aee2ff 0%,#d8f3ff 55%,#ffe9f3 100%);z-index:10;gap:18px;}
+  .hidden{display:none !important;}
+  h1.logo{font-size:min(11vw,92px);font-weight:900;letter-spacing:2px;color:#fff;
+    text-shadow:0 6px 0 #ff7eb0, 0 12px 0 rgba(58,49,83,.18);transform:rotate(-2deg);}
+  h1.logo span{color:#fff;text-shadow:0 6px 0 #6ec6ff, 0 12px 0 rgba(58,49,83,.18);}
+  .tag{font-size:18px;font-weight:600;color:#6b5f8e;transform:rotate(-1deg);}
+  .btn{border:0;cursor:pointer;font-weight:800;font-size:22px;color:#fff;background:var(--candy1);
+    padding:14px 34px;border-radius:999px;box-shadow:0 6px 0 rgba(58,49,83,.25);transition:transform .08s;}
+  .btn:hover{transform:translateY(-2px) scale(1.03);}
+  .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(58,49,83,.25);}
+  .btn.blue{background:var(--candy2);} .btn.yellow{background:var(--candy3);color:#7a5b00;}
+  .btn.purple{background:var(--candy4);} .btn.ghost{background:#ffffffcc;color:var(--ink);}
+  .btn.small{font-size:15px;padding:8px 18px;box-shadow:0 4px 0 rgba(58,49,83,.2);}
+  .card{background:#ffffffe8;border-radius:24px;padding:18px 22px;box-shadow:0 10px 30px rgba(58,49,83,.15);}
+  .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;}
+  .col{display:flex;flex-direction:column;gap:10px;align-items:center;}
+  .archegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .arche{border:3px solid transparent;border-radius:16px;padding:8px 10px;background:#f4f0ff;cursor:pointer;text-align:center;}
+  .arche.sel{border-color:var(--candy4);background:#e8e2ff;}
+  .arche b{display:block;font-size:14px;} .arche small{font-size:10px;color:#8a7fae;line-height:1.1;display:block;}
+  .swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;border:4px solid transparent;}
+  .swatch.sel{border-color:#fff;box-shadow:0 0 0 3px var(--ink);}
+  .statrow{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;}
+  .statrow .nm{width:74px;text-align:right;color:#6b5f8e;}
+  .pip{width:10px;height:14px;border-radius:3px;background:#e5deff;}
+  .pip.on{background:var(--candy4);}
+  .mini{width:26px;height:26px;border-radius:8px;border:0;font-weight:900;cursor:pointer;background:var(--candy2);color:#fff;font-size:16px;line-height:1;}
+  .mini:disabled{opacity:.3;cursor:default;}
+  select,input[type=text]{font-size:16px;padding:8px 12px;border-radius:12px;border:2px solid #d9d2f0;background:#fff;color:var(--ink);font-weight:700;}
+  label.lab{font-size:12px;font-weight:800;color:#8a7fae;text-transform:uppercase;letter-spacing:1px;}
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:5;}
+  #scorebug{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;
+    background:#ffffffe6;border-radius:999px;padding:8px 22px;box-shadow:0 6px 20px rgba(58,49,83,.2);font-weight:900;font-size:22px;}
+  #scorebug .tname{font-size:14px;font-weight:800;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  #clock{font-variant-numeric:tabular-nums;background:var(--ink);color:#fff;border-radius:12px;padding:2px 10px;font-size:18px;}
+  #bigmsg{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-size:min(14vw,110px);font-weight:900;color:#fff;
+    text-shadow:0 8px 0 var(--candy1),0 16px 0 rgba(58,49,83,.2);opacity:0;transition:opacity .15s, transform .15s;}
+  #submsg{position:absolute;top:47%;left:50%;transform:translateX(-50%);font-size:24px;font-weight:800;color:#6b5f8e;opacity:0;}
+  #chargewrap{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:220px;height:16px;border-radius:999px;
+    background:#ffffffb0;overflow:hidden;opacity:0;transition:opacity .2s;}
+  #chargebar{height:100%;width:0%;background:linear-gradient(90deg,var(--candy3),var(--coral));}
+  #ctrlhint{position:absolute;bottom:8px;right:12px;font-size:11px;font-weight:700;color:#ffffffd9;text-shadow:0 1px 2px rgba(0,0,0,.25);text-align:right;}
+  #netstat{position:absolute;top:14px;right:14px;font-size:12px;font-weight:800;color:#fff;background:#3a3153b0;padding:4px 10px;border-radius:10px;display:none;}
+  #netgraph{position:absolute;top:46px;right:14px;font-size:11px;font-weight:700;line-height:1.5;color:#cfe9ff;
+    background:#171426d0;padding:7px 11px;border-radius:9px;display:none;font-family:ui-monospace,Consolas,monospace;
+    white-space:pre;text-align:right;pointer-events:none;}
+  #netgraph b{color:#7be3a8;font-weight:800;}
+  #netgraph i{color:#ffd93b;font-style:normal;font-weight:800;}
+  #netgraph u{color:#ff7eb0;text-decoration:none;font-weight:800;}
+  .lobbyslot{display:flex;justify-content:space-between;gap:20px;font-weight:700;font-size:14px;background:#f4f0ff;border-radius:10px;padding:6px 12px;min-width:230px;
+    border:2px solid transparent;}
+  .accdot{width:16px;height:16px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 2px #ffffffcc inset;cursor:pointer;}
+  .lobbyslot.free{opacity:.8;}
+  .lobbyslot.free:hover{opacity:1;background:#e8e2ff;border-color:var(--candy4);}
+  .lobbyslot.mine{border-color:var(--candy1);background:#ffeaf3;}
+  .lobbyslot.sel{border-color:var(--candy4);box-shadow:0 0 0 2px #9b8cff55;}
+  .slotchip{border:3px solid transparent;border-radius:14px;background:#f4f0ff;cursor:pointer;
+    padding:6px 10px;text-align:center;font-weight:800;font-size:12px;min-width:74px;line-height:1.25;}
+  .slotchip.sel{border-color:var(--candy4);background:#e8e2ff;}
+  .slotchip small{display:block;font-size:10px;color:#8a7fae;font-weight:700;}
+  .bindrow{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;min-width:480px;}
+  .bindrow .bn{flex:1;text-align:right;color:#6b5f8e;}
+  .bindkey{min-width:96px;text-align:center;background:#f4f0ff;border:2px solid #d9d2f0;border-radius:10px;
+    padding:4px 10px;cursor:pointer;font-weight:800;font-size:12px;}
+  .bindkey.listening{background:#ffd93b;border-color:#e0b800;animation:pulse .6s infinite alternate;}
+  .bindkey.pad{background:#e8f4ff;}
+  @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.06)}}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:700;
+    padding:10px 20px;border-radius:14px;opacity:0;transition:opacity .3s;z-index:50;pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="errlog" style="display:none"></div>
+<script>
+  window.addEventListener('error', e => { document.getElementById('errlog').textContent += ' [ERR] ' + e.message + ' @' + (e.filename||'') + ':' + e.lineno; });
+  window.addEventListener('unhandledrejection', e => { document.getElementById('errlog').textContent += ' [REJ] ' + (e.reason && e.reason.message || e.reason); });
+</script>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="scorebug">
+    <span class="tname" id="n0">HOME</span><span id="s0">0</span>
+    <span id="clock">3:00</span>
+    <span id="s1">0</span><span class="tname" id="n1">AWAY</span>
+  </div>
+  <div id="bigmsg"></div>
+  <div id="submsg"></div>
+  <div id="chargewrap"><div id="chargebar"></div></div>
+  <div id="netstat"></div>
+  <div id="netgraph"></div>
+  <div id="replaytag" style="position:absolute;top:78px;left:50%;transform:translateX(-50%);display:none;
+    font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;background:#ff5fa2;
+    padding:4px 16px;border-radius:999px;box-shadow:0 4px 14px rgba(58,49,83,.3);">● REPLAY</div>
+  <div id="ctrlhint">MOVE WASD · PASS J (HOLD=AIM IT) · SHOOT/SLIDE K · FINESSE E · DEKE/BIG HIT L · CHIP U · SPRINT SHIFT</div>
+</div>
+
+<div id="screen-title" class="screen">
+  <h1 class="logo">BOPBALL <span>FC</span></h1>
+  <div class="tag">4v4 cage soccer. No refs. No mercy. Big feelings.</div>
+  <div class="row">
+    <button class="btn" id="bPlay">PLAY</button>
+    <button class="btn blue" id="bCup">CUP RUN</button>
+    <button class="btn purple" id="bOnline">ONLINE</button>
+  </div>
+  <div class="row">
+    <button class="btn ghost small" id="bPractice">Practice arena</button>
+    <button class="btn ghost small" id="bTraining">Training</button>
+    <button class="btn ghost small" id="bControls1">Controls</button>
+    <button class="btn ghost small" id="bHelp">How to play</button>
+  </div>
+</div>
+
+<div id="screen-setup" class="screen hidden">
+  <div class="row" style="align-items:flex-start;">
+    <div class="card col" id="teamcard">
+      <label class="lab">Your squad</label>
+      <div class="row"><input type="text" id="teamName" maxlength="14" value="BOP UNITED" style="width:170px;text-align:center;"></div>
+      <div class="row" id="colorRow"></div>
+      <label class="lab">Your lineup — click a player to edit</label>
+      <div class="row" id="slotRow"></div>
+      <div class="archegrid" id="archeGrid"></div>
+      <div class="col" id="traitPanel"></div>
+      <div class="row"><label class="lab">You start as</label><select id="selStart"></select></div>
+    </div>
+    <div class="card col">
+      <label class="lab">Match</label>
+      <div class="row"><label class="lab" style="width:80px;">Rival AI</label>
+        <select id="selDiff">
+          <option value="rookie">Rookie</option>
+          <option value="pro" selected>Pro</option>
+          <option value="superstar">Superstar</option>
+          <option value="legend">Legend</option>
+        </select></div>
+      <div class="row"><label class="lab" style="width:80px;">Timer</label>
+        <select id="selTimer">
+          <option value="120">2:00</option>
+          <option value="180" selected>3:00</option>
+          <option value="300">5:00</option>
+        </select></div>
+      <div class="row"><label class="lab" style="width:80px;">Goalies</label>
+        <select id="selWeakG"><option value="0" selected>Normal</option><option value="1">Weak (party!)</option></select></div>
+      <div class="row"><label class="lab" style="width:80px;">Momentum</label>
+        <select id="selMomentum"><option value="1" selected>On</option><option value="0">Off</option></select></div>
+      <div class="row"><label class="lab" style="width:80px;">Weather</label>
+        <select id="selWeather">
+          <option value="random" selected>Random</option>
+          <option value="clear">Clear</option>
+          <option value="golden">Golden hour</option>
+          <option value="overcast">Overcast</option>
+          <option value="rain">Rain</option>
+          <option value="snow">Snow</option>
+          <option value="night">Night game</option>
+        </select></div>
+      <div style="height:8px"></div>
+      <button class="btn" id="bKickoff">KICK OFF!</button>
+      <button class="btn ghost small" id="bBack1">Back</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-online" class="screen hidden">
+  <div class="card col">
+    <label class="lab">Online match</label>
+    <div class="row"><input type="text" id="onName" placeholder="Your name" maxlength="12" value="Bean"></div>
+    <div class="row"><input type="text" id="onServer" style="width:280px;" placeholder="server address"></div>
+    <div class="row">
+      <button class="btn small blue" id="bHost">Host match</button>
+      <span style="font-weight:800;">or</span>
+      <input type="text" id="onCode" placeholder="CODE" maxlength="5" style="width:90px;text-transform:uppercase;text-align:center;">
+      <button class="btn small purple" id="bJoin">Join</button>
+    </div>
+    <div id="lobby" class="col hidden">
+      <div style="font-weight:900;font-size:22px;">Lobby <span id="lobbyCode" style="color:var(--candy1)"></span></div>
+      <div class="row"><label class="lab">Match length</label>
+        <select id="lobbyTimer">
+          <option value="120">2:00</option>
+          <option value="180" selected>3:00</option>
+          <option value="300">5:00</option>
+          <option value="420">7:00</option>
+          <option value="600">10:00</option>
+        </select>
+        <span id="lobbyTimerNote" style="font-size:11px;font-weight:700;color:#8a7fae;"></span>
+      </div>
+      <div class="row"><label class="lab">Weather</label>
+        <select id="lobbyWeather">
+          <option value="random" selected>Random</option>
+          <option value="clear">Clear</option>
+          <option value="golden">Golden hour</option>
+          <option value="overcast">Overcast</option>
+          <option value="rain">Rain</option>
+          <option value="snow">Snow</option>
+          <option value="night">Night game</option>
+        </select>
+        <span id="lobbyWeatherNote" style="font-size:11px;font-weight:700;color:#8a7fae;"></span>
+      </div>
+      <label class="lab">Roster — click a bean to give it stat points · dot = its colour · PLAY AS = take that seat</label>
+      <div class="col" id="lobbySlots"></div>
+      <div class="col" id="lobbyTraits"></div>
+      <button class="btn small" id="bStart">START MATCH</button>
+    </div>
+    <div id="onError" style="color:#d33;font-weight:700;"></div>
+    <button class="btn ghost small" id="bBack2">Back</button>
+  </div>
+</div>
+
+<div id="screen-end" class="screen hidden">
+  <div class="card col">
+    <div id="endTitle" style="font-size:40px;font-weight:900;">FULL TIME</div>
+    <div id="endScore" style="font-size:30px;font-weight:900;"></div>
+    <div id="endStats" style="font-size:14px;font-weight:700;color:#6b5f8e;text-align:center;line-height:1.7;"></div>
+    <div class="row">
+      <button class="btn" id="bRematch">REMATCH</button>
+      <button class="btn ghost" id="bMenu">MENU</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-help" class="screen hidden">
+  <div class="card col" style="max-width:660px;">
+    <div style="font-size:28px;font-weight:900;">HOW TO PLAY</div>
+    <div style="font-size:15px;font-weight:600;line-height:1.8;">
+      Score more goals than the other beans. There are no fouls and no out-of-bounds — the fence is electric, use it.<br><br>
+      <b>With the ball:</b> J pass (hold U for a lob) · K shoot — hold to charge 3 levels, charged shots can stun the keeper · L deke past tacklers.<br>
+      <b>Without the ball:</b> J switch bean · K slide tackle (from behind = you both eat turf) · L BIG HIT — flatten anyone, but off-ball hits cost you recovery time.<br>
+      <b>One-timer:</b> pass, then press K just before your teammate receives — instant volley the keeper can barely track.<br>
+      A perfect untouched pass gives your receiver a glowing power boost. Body-check people into the fence for bonus zap.<br>
+      <b>Gamepad:</b> stick move · A pass · X shoot · B deke/hit · LB lob · RT sprint.
+    </div>
+    <button class="btn ghost small" id="bBack3">Back</button>
+  </div>
+</div>
+
+<div id="screen-pause" class="screen hidden" style="background:#3a315377;">
+  <div class="card col">
+    <div style="font-size:30px;font-weight:900;" id="pauseTitle">PAUSED</div>
+    <div id="pauseNote" class="hidden" style="font-size:13px;font-weight:700;color:#6b5f8e;max-width:260px;text-align:center;line-height:1.5;">
+      Online match — the game keeps playing. Your bean stands still until you resume.
+    </div>
+    <button class="btn" id="bResume">RESUME</button>
+    <button class="btn blue" id="bControls2">CONTROLS</button>
+    <button class="btn ghost" id="bQuit">QUIT MATCH</button>
+  </div>
+</div>
+
+<div id="screen-controls" class="screen hidden">
+  <div class="card col" style="max-width:680px;max-height:88vh;overflow-y:auto;">
+    <div style="font-size:28px;font-weight:900;">CONTROLS</div>
+    <div class="row"><label class="lab">Scheme</label>
+      <select id="selScheme">
+        <option value="mouse">Mouse aim — WASD + mouse (natural)</option>
+        <option value="buttons">Classic buttons</option>
+      </select>
+    </div>
+    <div id="schemeHelp" style="font-size:13px;font-weight:600;color:#6b5f8e;max-width:560px;text-align:center;line-height:1.5;"></div>
+    <div class="col" id="bindList" style="gap:4px;"></div>
+    <div class="row"><label class="lab">Stick deadzone</label>
+      <input type="range" id="dzSlider" min="0.08" max="0.35" step="0.01" style="width:140px;">
+      <span id="dzVal" style="font-weight:800;font-size:13px;"></span>
+    </div>
+    <div class="row"><label class="lab">Vibration</label>
+      <select id="selVib"><option value="1">On</option><option value="0">Off</option></select>
+    </div>
+    <div class="row"><label class="lab">Volume</label>
+      <input type="range" id="volSlider" min="0" max="1" step="0.05" style="width:140px;">
+      <span id="volVal" style="font-weight:800;font-size:13px;"></span>
+    </div>
+    <div class="row"><label class="lab">Crowd noise</label>
+      <input type="range" id="crowdSlider" min="0" max="1" step="0.05" style="width:140px;">
+      <span id="crowdVal" style="font-weight:800;font-size:13px;"></span>
+    </div>
+    <div class="row">
+      <button class="btn small yellow" id="bResetBinds">Reset defaults</button>
+      <button class="btn ghost small" id="bBack4">Back</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module" src="./client.js"></script>
+</body>
+</html>
